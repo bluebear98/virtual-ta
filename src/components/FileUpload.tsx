@@ -19,18 +19,22 @@ export default function FileUpload({ onFileContent, disabled }: FileUploadProps)
   };
 
   return (
-    <div className="w-full mb-6">
-      <label className={`w-full h-48 border-2 border-dashed rounded flex flex-col items-center justify-center cursor-pointer
-        ${disabled ? 'opacity-50 cursor-not-allowed border-gray-300' : 'border-blue-300 hover:border-blue-500 hover:bg-blue-50'}`}>
-        <p className="text-sm text-gray-600">Upload a text file</p>
+    <div className="flex items-center gap-4">
+      <div className="flex-grow">
+        <p className="text-sm text-gray-600 mb-2">Upload a text file for your transcript</p>
         <input
           type="file"
           onChange={handleFileChange}
           accept=".txt"
           disabled={disabled}
-          className="hidden"
+          className="block w-full text-sm text-gray-500
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-md file:border-0
+            file:text-sm file:font-semibold
+            file:bg-blue-50 file:text-blue-700
+            hover:file:bg-blue-100"
         />
-      </label>
+      </div>
     </div>
   );
 }
