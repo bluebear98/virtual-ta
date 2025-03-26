@@ -12,7 +12,8 @@
     "next": "^13.5.10",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "openai": "^4.0.0"
+    "openai": "^4.0.0",
+    "pdfjs-dist": "^3.11.174"
   },
   "devDependencies": {
     "@types/node": "20.5.9",

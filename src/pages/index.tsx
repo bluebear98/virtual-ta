@@ -3,9 +3,11 @@ import Head from 'next/head'
 import { TopicChunk } from '../types'
 import type { FormEvent } from 'react';
 import FileUpload from '../components/FileUpload';
+import PDFUpload from '../components/PDFUpload';
 
 export default function Home() {
   const [transcript, setTranscript] = useState('')
+  const [slides, setSlides] = useState<string[]>([])
   const [topics, setTopics] = useState<TopicChunk[]>([])
   const [loading, setLoading] = useState(false)
   const [expandedId, setExpandedId] = useState<number | null>(null)
@@ -22,21 +24,45 @@ export default function Home() {
       return;
     }
 
+    // Add debug logging
+    console.log('Debug - Transcript:', {
+      length: trimmedTranscript.length,
+      preview: trimmedTranscript.substring(0, 200) + '...',
+      full: trimmedTranscript
+    });
+    // Create a new array with trimmed slides
+    const trimmedSlides = slides.map(slide => slide.trim());
+    console.log('Debug - Slides:', {
+      count: trimmedSlides.length,
+      previews: trimmedSlides.map((slide, i) => ({
+        slideNumber: i + 1,
+        preview: slide.substring(0, 100) + '...'
+      }))
+    });
+
     try {
       const res = await fetch('/api/summarize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: trimmedTranscript }),
+        body: JSON.stringify({ 
+          transcript: trimmedTranscript,
+          slides: trimmedSlides
+        }),
       })
-      if (!res.ok) {
-        throw new Error('Failed to process transcript');
-      }
+      
       const data = await res.json()
+      
+      if (!res.ok) {
+        throw new Error(`Server error: ${data.message || 'Unknown error'}`);
+      }
+      
+      console.log('API Response:', data);
       setTopics(data.chunks || [])
       setError('');
     } catch (error) {
-      setError('Error processing transcript');
-      console.error('Error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error processing transcript';
+      setError(errorMessage);
+      console.error('Full error details:', error)
     } finally {
       setLoading(false)
     }
@@ -53,14 +79,20 @@ export default function Home() {
         <h1 className="text-2xl font-bold mb-4">Lecture Analyzer</h1>
         
         <form onSubmit={handleSubmit} className="mb-6">
-          <FileUpload
-            onFileContent={setTranscript}
-            disabled={loading}
-          />
+          <div className="grid grid-cols-2 gap-8 mb-6">
+            <FileUpload
+              onFileContent={setTranscript}
+              disabled={loading}
+            />
+            <PDFUpload
+              onPDFContent={setSlides}
+              disabled={loading}
+            />
+          </div>
           <button
             type="submit"
             disabled={loading || !transcript}
-            className="mt-2 pt-4 px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+            className="w-full px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
           >
             {loading ? 'Analyzing...' : 'Analyze Transcript'}
           </button>
@@ -88,6 +120,11 @@ export default function Home() {
                     <li key={index}>
                       <div>{bulletPoint.point}</div>
                       <div className="ml-4 mt-1 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                        {slides.length > 0 && bulletPoint.slideIndex !== undefined && (
+                          <div className="text-xs text-green-600 mb-1">
+                            Slide {bulletPoint.slideIndex + 1}
+                          </div>
+                        )}
                         - {bulletPoint.transcript}
                       </div>
                     </li>
