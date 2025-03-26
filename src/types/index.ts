@@ -1,27 +1,9 @@
-export interface Topic {
-  id: string;
-  title: string;
-  summary: string[];
-  details: string;
-  slideReferences?: {
-    slideNumber: number;
-    content: string;
-  }[];
+export interface TopicChunk {
+  id: number;           // Unique identifier for the chunk
+  title: string;        // Short topic title
+  summary: string;      // Brief overview of the topic
+  bulletPoints: Array<{
+    point: string;      // The bullet point text
+    transcript: string; // The relevant transcript section
+  }>;
 }
-
-export interface TranscriptAnalysis {
-  topics: Topic[];
-  metadata: {
-    totalDuration?: string;
-    speakerDistribution?: {
-      professor: number;
-      student: number;
-    };
-  };
-}
-
-export interface UploadResponse {
-  success: boolean;
-  analysis?: TranscriptAnalysis;
-  error?: string;
-} 
