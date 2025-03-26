@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Head from 'next/head'
 import { TopicChunk } from '../types'
 import type { FormEvent } from 'react';
+import FileUpload from '../components/FileUpload';
 
 export default function Home() {
   const [transcript, setTranscript] = useState('')
@@ -52,16 +53,14 @@ export default function Home() {
         <h1 className="text-2xl font-bold mb-4">Lecture Analyzer</h1>
         
         <form onSubmit={handleSubmit} className="mb-6">
-          <textarea
-            value={transcript}
-            onChange={(e) => setTranscript(e.target.value)}
-            className="w-full h-48 p-2 border rounded"
-            placeholder="Paste your lecture transcript here..."
+          <FileUpload
+            onFileContent={setTranscript}
+            disabled={loading}
           />
           <button
             type="submit"
-            disabled={loading}
-            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+            disabled={loading || !transcript}
+            className="mt-2 pt-4 px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
           >
             {loading ? 'Analyzing...' : 'Analyze Transcript'}
           </button>
