@@ -43,12 +43,22 @@ export default function FileUpload({ onFileContent, disabled }: FileUploadProps)
           },
           display: 'flex',
           flexDirection: 'column',
-          gap: 1
+          gap: 1,
+          padding: 2
         }}
       >
         {selectedFile ? (
           <>
-            <Typography variant="body2" color="primary">
+            <Typography 
+              variant="body2" 
+              color="primary"
+              sx={{
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
               {selectedFile}
             </Typography>
             <Typography variant="caption" color="text.secondary">

@@ -58,19 +58,31 @@ export default function PDFUpload({ onPDFContent, disabled }: PDFUploadProps) {
           height: '100px',
           border: '2px dashed',
           borderColor: disabled ? 'grey.300' : 'success.main',
+          color: disabled ? 'grey.500' : 'success.main',
           '&:hover': {
             border: '2px dashed',
             borderColor: 'success.dark',
-            bgcolor: 'success.50'
+            bgcolor: 'success.50',
+            color: 'success.dark'
           },
           display: 'flex',
           flexDirection: 'column',
-          gap: 1
+          gap: 1,
+          padding: 2
         }}
       >
         {selectedFile ? (
           <>
-            <Typography variant="body2" color="success.main">
+            <Typography 
+              variant="body2" 
+              color="success.main"
+              sx={{
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
               {selectedFile}
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -78,7 +90,7 @@ export default function PDFUpload({ onPDFContent, disabled }: PDFUploadProps) {
             </Typography>
           </>
         ) : (
-          'Choose PDF'
+            'Choose PDF'
         )}
         <input
           type="file"

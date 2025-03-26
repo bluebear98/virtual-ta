@@ -16,7 +16,8 @@ import {
   List,
   ListItem,
   ListItemText,
-  Chip
+  Chip,
+  Grid,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
@@ -90,23 +91,35 @@ export default function Home() {
         <meta name="description" content="Analyze lecture transcripts" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" />
       </Head>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ 
+          fontFamily: 'Orbitron',
+          fontWeight: 700,
+          letterSpacing: 1
+        }}>
           Lecture Analyzer
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
+          Upload your lecture transcript and slides to get a detailed analysis
         </Typography>
         
         <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3, mb: 4 }}>
-          <div className="grid grid-cols-2 gap-8 mb-6">
-            <FileUpload
-              onFileContent={setTranscript}
-              disabled={loading}
-            />
-            <PDFUpload
-              onPDFContent={setSlides}
-              disabled={loading}
-            />
-          </div>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <FileUpload
+                onFileContent={setTranscript}
+                disabled={loading}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <PDFUpload
+                onPDFContent={setSlides}
+                disabled={loading}
+              />
+            </Grid>
+          </Grid>
           <Button
             type="submit"
             variant="contained"
@@ -114,7 +127,7 @@ export default function Home() {
             fullWidth
             sx={{ mt: 2 }}
           >
-            {loading ? 'Analyzing...' : 'Analyze Transcript'}
+            {loading ? 'Analyzing...' : 'Analyze Lecture'}
           </Button>
         </Paper>
 
