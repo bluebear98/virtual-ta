@@ -10,6 +10,8 @@ interface ChunkResponse {
     id: number;
     title: string;
     summary: string;
+    sentiment: SentimentType;
+    sentimentScore: number;
     bulletPoints: Array<{
       point: string;
       transcript: string;
@@ -21,7 +23,7 @@ interface ChunkResponse {
 const messages = [
   {
     role: "system",
-    content: "You are an expert at analyzing lecture transcripts and matching content with presentation slides. Your task is to identify main topics and create detailed bullet points for each topic to help students review the lecture content. For each bullet point, include the relevant section of the transcript and match it with the most relevant slide if available."
+    content: "You are an expert at analyzing lecture transcripts, matching content with slides, and analyzing student engagement. Analyze the content for topics and assess each topic's engagement level based on student interactions, questions, and participation indicators in the transcript."
   },
   {
     role: "user",
@@ -29,6 +31,8 @@ const messages = [
     1. A concise topic title
     2. A one-sentence summary
     3. 3-5 detailed bullet points with their corresponding transcript sections
+    4. A sentiment analysis indicating student engagement level ("confused", "neutral", or "engaged")
+    5. A numerical sentiment score (0-100) where higher numbers indicate more engagement
 
     ${slides ? `I'm also providing the content of ${slides.length} slides. For each bullet point, if you find a matching slide that best represents that point, include its index (0-based).` : ''}
 
@@ -39,6 +43,8 @@ const messages = [
           "id": 1,
           "title": "Topic Title",
           "summary": "Brief overview",
+          "sentiment": "engaged",
+          "sentimentScore": 85,
           "bulletPoints": [
             {
               "point": "Key point",

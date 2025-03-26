@@ -1,9 +1,19 @@
-import { useState } from 'react'
-import Head from 'next/head'
-import { TopicChunk } from '../types'
+import { useState } from 'react';
+import Head from 'next/head';
+import { TopicChunk } from '../types';
 import type { FormEvent } from 'react';
 import FileUpload from '../components/FileUpload';
 import PDFUpload from '../components/PDFUpload';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
 import { 
   Container, 
   Typography, 
@@ -18,12 +28,22 @@ import {
   ListItemText,
   Chip,
   Grid,
+  Box
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Layout from '../components/Layout';
 import { useAnalysis } from '../context/AnalysisContext';
 
-export default function Home() {
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+export default function ProfessorView() {
   const {
     transcript,
     setTranscript,
@@ -37,7 +57,25 @@ export default function Home() {
     setError
   } = useAnalysis();
 
-  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  const chartData = {
+    labels: topics.map(topic => topic.title),
+    datasets: [
+      {
+        label: 'Engagement Score',
+        data: topics.map(topic => topic.sentimentScore),
+        backgroundColor: topics.map(topic => {
+          switch(topic.sentiment) {
+            case 'confused': return 'rgba(255, 99, 132, 0.5)';
+            case 'neutral': return 'rgba(54, 162, 235, 0.5)';
+            case 'engaged': return 'rgba(75, 192, 192, 0.5)';
+            default: return 'rgba(201, 203, 207, 0.5)';
+          }
+        })
+      }
+    ]
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -50,21 +88,7 @@ export default function Home() {
       return;
     }
 
-    // Add debug logging
-    console.log('Debug - Transcript:', {
-      length: trimmedTranscript.length,
-      preview: trimmedTranscript.substring(0, 200) + '...',
-      full: trimmedTranscript
-    });
-    // Create a new array with trimmed slides
     const trimmedSlides = slides.map(slide => slide.trim());
-    console.log('Debug - Slides:', {
-      count: trimmedSlides.length,
-      previews: trimmedSlides.map((slide, i) => ({
-        slideNumber: i + 1,
-        preview: slide.substring(0, 100) + '...'
-      }))
-    });
 
     try {
       const res = await fetch('/api/summarize', {
@@ -82,7 +106,6 @@ export default function Home() {
         throw new Error(`Server error: ${data.message || 'Unknown error'}`);
       }
       
-      console.log('API Response:', data);
       setTopics(data.chunks || [])
       setError('');
     } catch (error) {
@@ -92,41 +115,54 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
-  }
+  };
 
   return (
-    <Layout title="Lecture Analyzer">
-      <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
-        Upload your lecture transcript and slides to get a detailed analysis
-      </Typography>
-      
-      <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3, mb: 4 }}>
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            <FileUpload
-              onFileContent={setTranscript}
-              disabled={loading}
-            />
+    <Layout title="Lecture Analyzer - Professor View">
+        <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3, mb: 4 }}>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <FileUpload onFileContent={setTranscript} disabled={loading} />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <PDFUpload onPDFContent={setSlides} disabled={loading} />
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={6}>
-            <PDFUpload
-              onPDFContent={setSlides}
-              disabled={loading}
-            />
-          </Grid>
-        </Grid>
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={loading || !transcript}
-          fullWidth
-          sx={{ mt: 2 }}
-        >
-          {loading ? 'Analyzing...' : 'Analyze Lecture'}
-        </Button>
-      </Paper>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={loading || !transcript}
+            fullWidth
+            sx={{ mt: 2 }}
+          >
+            {loading ? 'Analyzing...' : 'Analyze Lecture'}
+          </Button>
+        </Paper>
 
       {error && <Alert severity="error" sx={{ mb: 4 }}>{error}</Alert>}
+
+      {topics.length > 0 && (
+        <Paper sx={{ p: 3, mb: 4 }}>
+          <Typography variant="h6" gutterBottom>
+            Topic Engagement Overview
+          </Typography>
+          <Box sx={{ height: 400 }}>
+            <Bar 
+              data={chartData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    max: 100
+                  }
+                }
+              }}
+            />
+          </Box>
+        </Paper>
+      )}
 
       <div>
         {topics.map((topic) => (
@@ -138,7 +174,14 @@ export default function Home() {
           >
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <div>
-                <Typography variant="h6">{topic.title}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="h6">{topic.title}</Typography>
+                  <Chip 
+                    label={`${topic.sentiment} (${topic.sentimentScore}%)`}
+                    color={topic.sentiment === 'confused' ? 'error' : topic.sentiment === 'engaged' ? 'success' : 'info'}
+                    size="small"
+                  />
+                </Box>
                 <Typography variant="body2" color="text.secondary">
                   {topic.summary}
                 </Typography>
@@ -174,5 +217,5 @@ export default function Home() {
         ))}
       </div>
     </Layout>
-  )
+  );
 }
