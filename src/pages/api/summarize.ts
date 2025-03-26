@@ -31,7 +31,7 @@ const createUserMessage = (transcript: string, slides?: string[]) => ({
   content: `Analyze this lecture transcript and break it into logical chunks. For each chunk, provide:
     1. A concise topic title
     2. A one-sentence summary
-    3. 3-5 detailed bullet points with their corresponding transcript sections
+    3. 3-5 detailed bullet points with their corresponding detailed and untruncated transcript parts without ellipsis.
     4. A sentiment analysis indicating student engagement level ("confused", "neutral", or "engaged")
     5. A numerical sentiment score (0-100) where higher numbers indicate more engagement
 
