@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
+import { SentimentType } from '../../types';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,14 +21,14 @@ interface ChunkResponse {
   }>;
 }
 
-const messages = [
-  {
-    role: "system",
-    content: "You are an expert at analyzing lecture transcripts, matching content with slides, and analyzing student engagement. Analyze the content for topics and assess each topic's engagement level based on student interactions, questions, and participation indicators in the transcript."
-  },
-  {
-    role: "user",
-    content: (transcript: string, slides?: string[]) => `Analyze this lecture transcript and break it into logical chunks. For each chunk, provide:
+const systemMessage = {
+  role: "system" as const,
+  content: "You are an expert at analyzing lecture transcripts, matching content with slides, and analyzing student engagement. Analyze the content for topics and assess each topic's engagement level based on student interactions, questions, and participation indicators in the transcript."
+};
+
+const createUserMessage = (transcript: string, slides?: string[]) => ({
+  role: "user" as const,
+  content: `Analyze this lecture transcript and break it into logical chunks. For each chunk, provide:
     1. A concise topic title
     2. A one-sentence summary
     3. 3-5 detailed bullet points with their corresponding transcript sections
@@ -59,8 +60,7 @@ const messages = [
     ${slides ? '\nSlide contents:\n' + slides.map((content, i) => `Slide ${i}: ${content}`).join('\n') : ''}
 
     Transcript:\n${transcript}`
-  }
-];
+});
 
 export default async function handler(
   req: NextApiRequest,
@@ -86,8 +86,8 @@ export default async function handler(
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        messages[0],
-        { role: "user", content: messages[1].content(transcript, slides) }
+        systemMessage,
+        createUserMessage(transcript, slides)
       ],
       response_format: { type: "json_object" }
     }).catch(error => {
@@ -114,9 +114,10 @@ export default async function handler(
         chunksLength: parsedResponse.chunks?.length,
         firstChunk: parsedResponse.chunks?.[0] ? 'present' : 'missing'
       });
-    } catch (parseError) {
+    } catch (error: unknown) {
+      const parseError = error instanceof Error ? error : new Error('Unknown JSON parse error');
       console.error('JSON parse error details:', parseError);
-      throw new Error(`Invalid JSON response from OpenAI: ${parseError.message}`);
+      throw parseError;
     }
 
     if (!parsedResponse.chunks || !Array.isArray(parsedResponse.chunks)) {

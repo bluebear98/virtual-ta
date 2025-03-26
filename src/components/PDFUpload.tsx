@@ -1,11 +1,14 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useState, useEffect } from 'react';
 import * as pdfjs from 'pdfjs-dist';
-import { PDFDocumentProxy } from 'pdfjs-dist';
 import { Typography, Button } from '@mui/material';
+import { SentimentType } from '../types';
 
-// Initialize PDF.js worker
-const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.entry');
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+let workerSrc = '';
+const initWorker = async () => {
+  const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.entry');
+  workerSrc = pdfjsWorker.default;
+  pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+};
 
 interface PDFUploadProps {
   onPDFContent: (slides: string[]) => void;
@@ -14,6 +17,10 @@ interface PDFUploadProps {
 
 export default function PDFUpload({ onPDFContent, disabled }: PDFUploadProps) {
   const [selectedFile, setSelectedFile] = useState<string>('');
+
+  useEffect(() => {
+    initWorker().catch(console.error);
+  }, []);
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
