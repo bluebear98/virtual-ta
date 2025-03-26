@@ -3,35 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.0",
-    "@heroicons/react": "^2.2.0",
-    "@langchain/community": "^0.3.37",
-    "@langchain/openai": "^0.4.9",
-    "@types/react-dropzone": "^4.2.2",
-    "axios": "^1.8.4",
-    "langchain": "^0.3.19",
-    "next": "^15.2.4",
-    "openai": "^4.89.0",
-    "pdf-parse": "^1.1.1",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-dropzone": "^14.3.8"
+    "next": "^13.5.10",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "openai": "^4.0.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20.17.27",
-    "@types/react": "^19.0.12",
-    "@types/react-dom": "^19.0.4",
-    "eslint": "^9",
-    "eslint-config-next": "15.2.4",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@types/node": "20.5.9",
+    "@types/react": "18.2.21",
+    "@types/react-dom": "18.2.7",
+    "typescript": "5.2.2"
   }
 }
