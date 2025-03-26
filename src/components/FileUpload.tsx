@@ -1,4 +1,5 @@
-import { ChangeEvent } from 'react';
+import { ChangeEvent, useState } from 'react';
+import { Typography, Button } from '@mui/material';
 
 interface FileUploadProps {
   onFileContent: (content: string) => void;
@@ -6,9 +7,12 @@ interface FileUploadProps {
 }
 
 export default function FileUpload({ onFileContent, disabled }: FileUploadProps) {
+  const [selectedFile, setSelectedFile] = useState<string>('');
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file.name);
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;
@@ -19,22 +23,48 @@ export default function FileUpload({ onFileContent, disabled }: FileUploadProps)
   };
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="flex-grow">
-        <p className="text-sm text-gray-600 mb-2">Upload a text file for your transcript</p>
+    <div>
+      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+        Upload a text file for your transcript
+      </Typography>
+      <Button
+        variant="outlined"
+        component="label"
+        disabled={disabled}
+        fullWidth
+        sx={{
+          height: '100px',
+          border: '2px dashed',
+          borderColor: disabled ? 'grey.300' : 'primary.main',
+          '&:hover': {
+            border: '2px dashed',
+            borderColor: 'primary.dark',
+            bgcolor: 'primary.50'
+          },
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1
+        }}
+      >
+        {selectedFile ? (
+          <>
+            <Typography variant="body2" color="primary">
+              {selectedFile}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Click to change file
+            </Typography>
+          </>
+        ) : (
+          'Choose File'
+        )}
         <input
           type="file"
           onChange={handleFileChange}
           accept=".txt"
-          disabled={disabled}
-          className="block w-full text-sm text-gray-500
-            file:mr-4 file:py-2 file:px-4
-            file:rounded-md file:border-0
-            file:text-sm file:font-semibold
-            file:bg-blue-50 file:text-blue-700
-            hover:file:bg-blue-100"
+          hidden
         />
-      </div>
+      </Button>
     </div>
   );
 }

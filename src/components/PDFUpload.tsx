@@ -1,6 +1,7 @@
-import { ChangeEvent } from 'react';
+import { ChangeEvent, useState } from 'react';
 import * as pdfjs from 'pdfjs-dist';
 import { PDFDocumentProxy } from 'pdfjs-dist';
+import { Typography, Button } from '@mui/material';
 
 // Initialize PDF.js worker
 const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.entry');
@@ -12,9 +13,12 @@ interface PDFUploadProps {
 }
 
 export default function PDFUpload({ onPDFContent, disabled }: PDFUploadProps) {
+  const [selectedFile, setSelectedFile] = useState<string>('');
+
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file.name);
       const reader = new FileReader();
       reader.onload = async (event) => {
         const arrayBuffer = event.target?.result as ArrayBuffer;
@@ -41,22 +45,48 @@ export default function PDFUpload({ onPDFContent, disabled }: PDFUploadProps) {
   };
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="flex-grow">
-        <p className="text-sm text-gray-600 mb-2">(Optional) Upload slides</p>
+    <div>
+      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+        (Optional) Upload slides
+      </Typography>
+      <Button
+        variant="outlined"
+        component="label"
+        disabled={disabled}
+        fullWidth
+        sx={{
+          height: '100px',
+          border: '2px dashed',
+          borderColor: disabled ? 'grey.300' : 'success.main',
+          '&:hover': {
+            border: '2px dashed',
+            borderColor: 'success.dark',
+            bgcolor: 'success.50'
+          },
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1
+        }}
+      >
+        {selectedFile ? (
+          <>
+            <Typography variant="body2" color="success.main">
+              {selectedFile}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Click to change file
+            </Typography>
+          </>
+        ) : (
+          'Choose PDF'
+        )}
         <input
           type="file"
           onChange={handleFileChange}
           accept=".pdf"
-          disabled={disabled}
-          className="block w-full text-sm text-gray-500
-            file:mr-4 file:py-2 file:px-4
-            file:rounded-md file:border-0
-            file:text-sm file:font-semibold
-            file:bg-green-50 file:text-green-700
-            hover:file:bg-green-100"
+          hidden
         />
-      </div>
+      </Button>
     </div>
   );
 }

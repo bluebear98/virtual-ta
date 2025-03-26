@@ -4,6 +4,21 @@ import { TopicChunk } from '../types'
 import type { FormEvent } from 'react';
 import FileUpload from '../components/FileUpload';
 import PDFUpload from '../components/PDFUpload';
+import { 
+  Container, 
+  Typography, 
+  Paper, 
+  Button, 
+  Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  List,
+  ListItem,
+  ListItemText,
+  Chip
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export default function Home() {
   const [transcript, setTranscript] = useState('')
@@ -74,11 +89,14 @@ export default function Home() {
         <title>Virtual TA - Lecture Analyzer</title>
         <meta name="description" content="Analyze lecture transcripts" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
       </Head>
-      <main className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Lecture Analyzer</h1>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Lecture Analyzer
+        </Typography>
         
-        <form onSubmit={handleSubmit} className="mb-6">
+        <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3, mb: 4 }}>
           <div className="grid grid-cols-2 gap-8 mb-6">
             <FileUpload
               onFileContent={setTranscript}
@@ -89,52 +107,65 @@ export default function Home() {
               disabled={loading}
             />
           </div>
-          <button
+          <Button
             type="submit"
+            variant="contained"
             disabled={loading || !transcript}
-            className="w-full px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+            fullWidth
+            sx={{ mt: 2 }}
           >
             {loading ? 'Analyzing...' : 'Analyze Transcript'}
-          </button>
-        </form>
+          </Button>
+        </Paper>
 
-        {error && <div className="text-red-500 mt-4">{error}</div>}
+        {error && <Alert severity="error" sx={{ mb: 4 }}>{error}</Alert>}
 
-        <div className="space-y-4">
+        <div>
           {topics.map((topic) => (
-            <div
+            <Accordion 
               key={topic.id}
-              className="p-4 border rounded shadow"
+              expanded={expandedId === topic.id}
+              onChange={() => setExpandedId(expandedId === topic.id ? null : topic.id)}
+              sx={{ mb: 2 }}
             >
-              <div 
-                className="cursor-pointer"
-                onClick={() => setExpandedId(expandedId === topic.id ? null : topic.id)}
-              >
-                <h3 className="text-lg font-semibold">{topic.title}</h3>
-                <p className="text-gray-600">{topic.summary}</p>
-              </div>
-              
-              {expandedId === topic.id && (
-                <ul className="mt-4 ml-4 list-disc space-y-2">
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <div>
+                  <Typography variant="h6">{topic.title}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {topic.summary}
+                  </Typography>
+                </div>
+              </AccordionSummary>
+              <AccordionDetails>
+                <List>
                   {topic.bulletPoints.map((bulletPoint, index) => (
-                    <li key={index}>
-                      <div>{bulletPoint.point}</div>
-                      <div className="ml-4 mt-1 text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        {slides.length > 0 && bulletPoint.slideIndex !== undefined && (
-                          <div className="text-xs text-green-600 mb-1">
-                            Slide {bulletPoint.slideIndex + 1}
-                          </div>
-                        )}
-                        - {bulletPoint.transcript}
-                      </div>
-                    </li>
+                    <ListItem key={index} sx={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                      <ListItemText
+                        primary={bulletPoint.point}
+                        secondary={
+                          <Paper variant="outlined" sx={{ p: 2, mt: 1, bgcolor: 'grey.50' }}>
+                            {slides.length > 0 && bulletPoint.slideIndex !== undefined && (
+                              <Chip
+                                label={`Slide ${bulletPoint.slideIndex + 1}`}
+                                size="small"
+                                color="success"
+                                sx={{ mb: 1 }}
+                              />
+                            )}
+                            <Typography variant="body2" color="text.secondary">
+                              {bulletPoint.transcript}
+                            </Typography>
+                          </Paper>
+                        }
+                      />
+                    </ListItem>
                   ))}
-                </ul>
-              )}
-            </div>
+                </List>
+              </AccordionDetails>
+            </Accordion>
           ))}
         </div>
-      </main>
+      </Container>
     </>
   )
 }
