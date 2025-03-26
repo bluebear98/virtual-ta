@@ -81,13 +81,17 @@ export default function Home() {
               >
                 <h3 className="text-lg font-semibold">{topic.title}</h3>
                 <p className="text-gray-600">{topic.summary}</p>
-                <p className="text-sm text-gray-500">{topic.timeframe}</p>
               </div>
               
               {expandedId === topic.id && (
                 <ul className="mt-4 ml-4 list-disc space-y-2">
-                  {topic.bulletPoints.map((point, index) => (
-                    <li key={index}>{point}</li>
+                  {topic.bulletPoints.map((bulletPoint, index) => (
+                    <li key={index}>
+                      <div>{bulletPoint.point}</div>
+                      <div className="ml-4 mt-1 text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                        - {bulletPoint.transcript}
+                      </div>
+                    </li>
                   ))}
                 </ul>
               )}

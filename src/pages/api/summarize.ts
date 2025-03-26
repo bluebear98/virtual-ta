@@ -10,10 +10,49 @@ interface ChunkResponse {
     id: number;
     title: string;
     summary: string;
-    bulletPoints: string[];
-    timeframe: string;
+    bulletPoints: Array<{
+      point: string;
+      transcript: string;
+    }>;
   }>;
 }
+
+const messages = [
+  {
+    role: "system",
+    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create detailed bullet points for each topic to help students review the lecture content. For each bullet point, include the relevant section of the transcript that discusses that point."
+  },
+  {
+    role: "user",
+    content: (transcript: string) => `Analyze this lecture transcript and break it into logical chunks. For each chunk, provide:
+    1. A concise topic title
+    2. A one-sentence summary
+    3. 3-5 detailed bullet points with their corresponding transcript sections
+
+    Return a JSON object with a "chunks" array. Example format:
+    {
+      "chunks": [
+        {
+          "id": 1,
+          "title": "Introduction to Topic",
+          "summary": "Brief overview of main concepts",
+          "bulletPoints": [
+            {
+              "point": "Key concept 1",
+              "transcript": "Relevant transcript section discussing key concept 1..."
+            },
+            {
+              "point": "Key concept 2",
+              "transcript": "Relevant transcript section discussing key concept 2..."
+            }
+          ]
+        }
+      ]
+    }
+
+    Transcript:\n${transcript}`
+  }
+];
 
 export default async function handler(
   req: NextApiRequest,
@@ -32,32 +71,12 @@ export default async function handler(
 
     console.log('Sending request to OpenAI');
 
-
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
-      messages: [{
-        role: "user",
-        content: `Analyze this lecture transcript and break it into logical chunks. For each chunk, provide:
-        1. A concise topic title
-        2. A one-sentence summary
-        3. 3-5 detailed bullet points
-        4. Approximate timeframe in the lecture
-
-        Return a JSON object with a "chunks" array. Example format:
-        {
-          "chunks": [
-            {
-              "id": 1,
-              "title": "Introduction to Topic",
-              "summary": "Brief overview of main concepts",
-              "bulletPoints": ["Point 1", "Point 2", "Point 3"],
-              "timeframe": "0:00-5:00"
-            }
-          ]
-        }
-
-        Transcript:\n${transcript}`
-      }],
+      messages: [
+        messages[0],
+        { role: "user", content: messages[1].content(transcript) }
+      ],
       response_format: { type: "json_object" }
     });
 
