@@ -24,7 +24,7 @@ interface ChunkResponse {
 const messages = [
   {
     role: "system",
-    content: "You are an expert at analyzing lecture transcripts and creating comprehensive study materials for students. Your task is to identify main topics and create detailed, student-friendly bullet point summaries that help students understand and revise the lecture content. Focus on clarity, completeness, and educational value. Always maintain chronological order of concepts unless explicitly noted otherwise in the transcript."
+    content: "You are an expert at analyzing lecture transcripts and creating comprehensive study materials for students. Your task is to identify main topics and create detailed, student-friendly bullet point summaries that help students understand and revise the lecture content. Focus on clarity, completeness, and educational value. Always maintain chronological order of concepts unless explicitly noted otherwise in the transcript. You MUST ALWAYS respond with valid JSON that exactly matches the specified structure."
   },
   {
     role: "user",
@@ -47,7 +47,7 @@ const messages = [
        - Provide specific examples or applications
        - Include 1-2 practice questions to check understanding
     
-    Return the result as JSON with the following structure:
+    IMPORTANT: You MUST return a valid JSON object that EXACTLY matches this structure:
     {
       "topics": [
         {
@@ -69,7 +69,7 @@ const messages = [
         }
       ]
     }
-    
+
     Guidelines for topic identification and summarization:
     - Break down complex topics into clear, digestible sections
     - Include both theoretical concepts and practical applications
@@ -83,6 +83,9 @@ const messages = [
     - Make learning objectives specific and measurable
     - Include a mix of theoretical and practical examples
     - Design practice questions that test both understanding and application
+    - Ensure all JSON fields are present and properly formatted
+    - Do not include any text outside the JSON structure
+    - Use proper JSON escaping for special characters
 
     Transcript:\n`
   }
@@ -120,11 +123,16 @@ export default async function handler(
       throw new Error('No content in OpenAI response');
     }
 
+    // Try to extract JSON if there's any text before or after it
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const jsonContent = jsonMatch ? jsonMatch[0] : content;
+
     let parsedResponse: ChunkResponse;
     try {
-      parsedResponse = JSON.parse(content);
+      parsedResponse = JSON.parse(jsonContent);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
+      console.error('Raw content:', content);
       throw new Error('Invalid JSON response from OpenAI');
     }
 
