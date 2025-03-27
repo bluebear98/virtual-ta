@@ -16,7 +16,6 @@ interface ChunkResponse {
       slideReference: string;
       keyTerms?: string[];  // Important terminology introduced in this point
       examples?: string[];  // Specific examples or applications
-      practiceQuestions?: string[];  // Self-check questions for understanding
     }>;
   }>;
 }
@@ -45,7 +44,6 @@ const messages = [
        - Reference the relevant slide numbers where this concept was discussed
        - List key terms introduced in this point
        - Provide specific examples or applications
-       - Include 1-2 practice questions to check understanding
     
     IMPORTANT: You MUST return a valid JSON object that EXACTLY matches this structure:
     {
@@ -62,8 +60,7 @@ const messages = [
               "point": "Comprehensive bullet point with all relevant details",
               "slideReference": "Slides X-Y (or specific slide number if single slide)",
               "keyTerms": ["term1", "term2"],
-              "examples": ["example1", "example2"],
-              "practiceQuestions": ["question1", "question2"]
+              "examples": ["example1", "example2"]
             }
           ]
         }
@@ -82,7 +79,6 @@ const messages = [
     - If a concept is discussed out of order, make this clear in the slide reference
     - Make learning objectives specific and measurable
     - Include a mix of theoretical and practical examples
-    - Design practice questions that test both understanding and application
     - Ensure all JSON fields are present and properly formatted
     - Do not include any text outside the JSON structure
     - Use proper JSON escaping for special characters
