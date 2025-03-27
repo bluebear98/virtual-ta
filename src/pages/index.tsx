@@ -151,7 +151,38 @@ export default function Home() {
                 {topic.summary.map((item, index) => (
                   <ListItem key={index} sx={{ flexDirection: 'column', alignItems: 'flex-start' }}>
                     <ListItemText
-                      primary={item.point}
+                      primary={
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', width: '100%' }}>
+                          <Typography component="span" variant="body1" sx={{ 
+                            color: 'primary.main',
+                            fontWeight: 'bold',
+                            fontSize: '1.2em',
+                            lineHeight: 1
+                          }}>
+                            •
+                          </Typography>
+                          <Typography component="span" variant="body1" sx={{ flex: 1 }}>
+                            {item.point}
+                          </Typography>
+                          <Chip
+                            label={item.slideReference}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            sx={{ 
+                              ml: 2,
+                              alignSelf: 'flex-start',
+                              flexShrink: 0,
+                              backgroundColor: 'primary.light',
+                              color: 'primary.contrastText',
+                              '&:hover': {
+                                backgroundColor: 'primary.main',
+                                cursor: 'pointer'
+                              }
+                            }}
+                          />
+                        </div>
+                      }
                     />
                   </ListItem>
                 ))}
