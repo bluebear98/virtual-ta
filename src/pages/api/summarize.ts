@@ -20,17 +20,18 @@ interface ChunkResponse {
 const messages = [
   {
     role: "system",
-    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create bullet point summaries that explain concepts by focusing on their purpose, reasoning, and connections. Write as if you're explaining the material to a fellow student, emphasizing why things work the way they do. Always respond with valid JSON."
+    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create bullet point summaries that explain concepts using direct, active language. Write as if you're explaining the material to a fellow student, using clear cause-and-effect relationships. Always respond with valid JSON."
   },
   {
     role: "user",
     content: `Analyze this lecture transcript and identify ALL main topics discussed (Exhaustive, and in the order they are discussed). For each topic:
     1. Create a clear, concise title
     2. For each bullet point:
-       - Start with active verbs and focus on reasoning (e.g., "We use X because...", "X is important since...", "X works by...")
-       - Explain the purpose and motivation behind concepts
-       - Connect ideas to their practical applications and real-world implications
-       - Include important formulas or technical details with clear explanations of why they matter
+       - Use direct, active language (e.g., "X causes Y", "X leads to Y", "X creates Y")
+       - Start with the cause and explain its effect
+       - Avoid passive voice and phrases like "was emphasized", "was discussed", "was shown"
+       - Connect ideas using clear cause-and-effect relationships
+       - Include important formulas or technical details with direct explanations
        - Match each point to the EXACT slide where it was discussed
        - If a point covers content from multiple slides, list all relevant slides
        - If a point's content appears out of order in the slides, indicate this
@@ -43,7 +44,7 @@ const messages = [
           "title": "Topic Title",
           "summary": [
             {
-              "point": "Explanation focusing on reasoning and connections",
+              "point": "Direct explanation using cause-and-effect relationships",
               "slideReference": "Slide X (or Slides X, Y, Z if multiple slides)"
             }
           ]
@@ -52,9 +53,9 @@ const messages = [
     }
     
     Guidelines for topic and slide matching:
-    - Each bullet point should explain the reasoning behind concepts
-    - Focus on why things work the way they do, not just what they are
-    - Connect concepts to their practical applications and implications
+    - Each bullet point should use direct, active language
+    - Focus on cause-and-effect relationships
+    - Avoid passive voice and descriptive phrases
     - If a concept is introduced on one slide and elaborated on another, include both slides
     - If examples or applications are shown on different slides, include those slides
     - If a concept is discussed out of order, list all relevant slides with order indication
