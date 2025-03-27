@@ -28,7 +28,7 @@ const messages = [
   },
   {
     role: "user",
-    content: (transcript: string) => `Analyze this lecture transcript and identify ALL main topics discussed (Exhaustive, and in the order they are discussed). For each topic:
+    content: `Analyze this lecture transcript and identify ALL main topics discussed (Exhaustive, and in the order they are discussed). For each topic:
     1. Create a clear, concise title that captures the main theme
     2. List 2-4 specific learning objectives that students should achieve after studying this topic
     3. Provide 5-8 comprehensive bullet points that:
@@ -84,7 +84,7 @@ const messages = [
     - Include a mix of theoretical and practical examples
     - Design practice questions that test both understanding and application
 
-    Transcript:\n${transcript}`
+    Transcript:\n`
   }
 ];
 
@@ -103,39 +103,59 @@ export default async function handler(
       return res.status(400).json({ message: 'Invalid transcript provided' });
     }
 
-    console.log('Sending request to OpenAI');
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        messages[0],
-        { role: "user", content: messages[1].content(transcript) }
-      ],
-      temperature: 0.7, // Slightly increased for more natural explanations
-      max_tokens: 2500 // Increased to allow for more detailed explanations
-    });
-
-    const content = completion.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error('No content in OpenAI response');
+    // Split transcript into chunks of approximately 4000 words (roughly 5000 tokens)
+    const words = transcript.split(/\s+/);
+    const chunkSize = 4000;
+    const chunks = [];
+    
+    for (let i = 0; i < words.length; i += chunkSize) {
+      chunks.push(words.slice(i, i + chunkSize).join(' '));
     }
 
-    console.log('Raw OpenAI response:', content);
+    console.log(`Split transcript into ${chunks.length} chunks`);
 
-    let parsedResponse: ChunkResponse;
-    try {
-      parsedResponse = JSON.parse(content);
-      console.log('Parsed response:', parsedResponse);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      throw new Error('Invalid JSON response from OpenAI');
+    // Process each chunk and combine results
+    const allTopics = [];
+    for (let i = 0; i < chunks.length; i++) {
+      console.log(`Processing chunk ${i + 1}/${chunks.length}`);
+      
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4",
+        messages: [
+          messages[0],
+          { role: "user", content: messages[1].content + chunks[i] }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000
+      });
+
+      const content = completion.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No content in OpenAI response');
+      }
+
+      let parsedResponse: ChunkResponse;
+      try {
+        parsedResponse = JSON.parse(content);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid JSON response from OpenAI');
+      }
+
+      if (!parsedResponse.topics || !Array.isArray(parsedResponse.topics)) {
+        throw new Error('Invalid response format from OpenAI');
+      }
+
+      // Add chunk number to topic IDs to ensure uniqueness
+      parsedResponse.topics.forEach(topic => {
+        topic.id = `${topic.id}-chunk${i}`;
+      });
+
+      allTopics.push(...parsedResponse.topics);
     }
 
-    if (!parsedResponse.topics || !Array.isArray(parsedResponse.topics)) {
-      throw new Error('Invalid response format from OpenAI');
-    }
-
-    return res.status(200).json(parsedResponse);
+    // Return combined results
+    return res.status(200).json({ topics: allTopics });
 
   } catch (error) {
     console.error('OpenAI API error:', error);
