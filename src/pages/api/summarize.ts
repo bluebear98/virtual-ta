@@ -20,23 +20,24 @@ interface ChunkResponse {
 const messages = [
   {
     role: "system",
-    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create concise but informative bullet point summaries for each topic to help students review the lecture content. Be thorough in identifying distinct topics and provide clear, focused bullet points for each topic. Always respond with valid JSON."
+    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create comprehensive bullet point summaries that combine theoretical understanding with practical implications. Each bullet point should provide both the concept and its significance. Always respond with valid JSON."
   },
   {
     role: "user",
     content: `Analyze this lecture transcript and identify ALL main topics discussed (Exhaustive, and in the order they are discussed). For each topic:
     1. Create a clear, concise title
-    2. Provide 5-8 focused bullet points that:
-       - Explain key concepts in 1-3 clear sentences
-       - Include essential definitions and terminology
-       - Highlight important relationships between concepts
-       - Provide key examples or applications
-       - Note critical formulas or technical details
+    2. Provide 5-8 comprehensive bullet points that:
+       - Start with the core concept or definition
+       - Explain how it works or its mechanism
+       - Describe its significance and implications
+       - Connect it to related concepts or real-world applications
+       - Include specific examples or case studies when relevant
+       - Note any important formulas or technical details with explanations
        - Reference the specific slide numbers where each concept is discussed
     3. For each bullet point:
-       - Be concise but comprehensive
-       - Use clear, academic language
-       - Focus on the most important information
+       - Structure it as: "What it is → How it works → Why it matters"
+       - Use clear, academic language while remaining accessible
+       - Include both theoretical understanding and practical implications
        - Reference the relevant slide numbers
        - If a concept spans multiple slides, provide the range (e.g., "Slides 5-7")
        - If a concept is discussed out of order, note this (e.g., "Discussed in Slides 8-10 (out of order)")
@@ -49,7 +50,7 @@ const messages = [
           "title": "Topic Title",
           "summary": [
             {
-              "point": "Concise bullet point with key information",
+              "point": "Comprehensive bullet point with concept, mechanism, and implications",
               "slideReference": "Slides X-Y (or specific slide number if single slide)"
             }
           ]
@@ -61,8 +62,8 @@ const messages = [
     - Include both major themes and important technical details
     - Consider chronological progression of concepts
     - Capture any important examples or case studies as separate topics if they illustrate key concepts
-    - Keep bullet points focused and concise (1-3 sentences)
-    - Use clear, academic language
+    - Structure each bullet point to cover: concept, mechanism, and implications
+    - Use clear, academic language while remaining accessible
     - Ensure slide references are accurate and helpful for students
     - If a concept is discussed across multiple slides, provide the full range
     - If a concept is discussed out of order, make this clear in the slide reference
