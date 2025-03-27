@@ -27,7 +27,7 @@ const messages = [
     content: `Analyze this lecture transcript and identify ALL main topics discussed (Exhaustive, and in the order they are discussed). For each topic:
     1. Create a clear, concise title
     2. For each bullet point:
-       - Start with active verbs (e.g., "We learned that...", "The professor explained...", "We saw how...")
+       - Be Descriptive so that the student can understand the topic even if they didnt attend the lecture.  
        - Explain concepts in a conversational, student-friendly way
        - Connect ideas to real-world examples and applications
        - Include important formulas or technical details with clear explanations
