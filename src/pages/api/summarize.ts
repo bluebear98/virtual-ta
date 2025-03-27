@@ -111,9 +111,8 @@ export default async function handler(
         messages[0],
         { role: "user", content: messages[1].content(transcript) }
       ],
-      response_format: { type: "json_object" },
-      temperature: 0.7, // Slightly increased for more natural explanations
-      max_tokens: 2000 // Increased to allow for more detailed explanations
+      // temperature: 0.7, // Slightly increased for more natural explanations
+      // max_tokens: 2000 // Increased to allow for more detailed explanations
     });
 
     const content = completion.choices[0]?.message?.content;
