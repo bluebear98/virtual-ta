@@ -103,59 +103,36 @@ export default async function handler(
       return res.status(400).json({ message: 'Invalid transcript provided' });
     }
 
-    // Split transcript into chunks of approximately 4000 words (roughly 5000 tokens)
-    const words = transcript.split(/\s+/);
-    const chunkSize = 4000;
-    const chunks = [];
-    
-    for (let i = 0; i < words.length; i += chunkSize) {
-      chunks.push(words.slice(i, i + chunkSize).join(' '));
+    console.log('Sending request to OpenAI');
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        messages[0],
+        { role: "user", content: messages[1].content + transcript }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error('No content in OpenAI response');
     }
 
-    console.log(`Split transcript into ${chunks.length} chunks`);
-
-    // Process each chunk and combine results
-    const allTopics = [];
-    for (let i = 0; i < chunks.length; i++) {
-      console.log(`Processing chunk ${i + 1}/${chunks.length}`);
-      
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          messages[0],
-          { role: "user", content: messages[1].content + chunks[i] }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000
-      });
-
-      const content = completion.choices[0]?.message?.content;
-      if (!content) {
-        throw new Error('No content in OpenAI response');
-      }
-
-      let parsedResponse: ChunkResponse;
-      try {
-        parsedResponse = JSON.parse(content);
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        throw new Error('Invalid JSON response from OpenAI');
-      }
-
-      if (!parsedResponse.topics || !Array.isArray(parsedResponse.topics)) {
-        throw new Error('Invalid response format from OpenAI');
-      }
-
-      // Add chunk number to topic IDs to ensure uniqueness
-      parsedResponse.topics.forEach(topic => {
-        topic.id = `${topic.id}-chunk${i}`;
-      });
-
-      allTopics.push(...parsedResponse.topics);
+    let parsedResponse: ChunkResponse;
+    try {
+      parsedResponse = JSON.parse(content);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      throw new Error('Invalid JSON response from OpenAI');
     }
 
-    // Return combined results
-    return res.status(200).json({ topics: allTopics });
+    if (!parsedResponse.topics || !Array.isArray(parsedResponse.topics)) {
+      throw new Error('Invalid response format from OpenAI');
+    }
+
+    return res.status(200).json(parsedResponse);
 
   } catch (error) {
     console.error('OpenAI API error:', error);
