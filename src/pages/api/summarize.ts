@@ -7,60 +7,86 @@ const openai = new OpenAI({
 });
 
 interface ChunkResponse {
-  chunks: Array<{
-    id: number;
+  topics: Array<{
+    id: string;
     title: string;
-    summary: string;
-    sentiment: SentimentType;
-    sentimentScore: number;
-    bulletPoints: Array<{
+    learningObjectives: string[];  // What students should be able to do after studying this topic
+    summary: Array<{
       point: string;
-      transcript: string;
-      slideIndex?: number;
+      slideReference: string;
+      keyTerms?: string[];  // Important terminology introduced in this point
+      examples?: string[];  // Specific examples or applications
+      practiceQuestions?: string[];  // Self-check questions for understanding
     }>;
   }>;
 }
 
-const systemMessage = {
-  role: "system" as const,
-  content: "You are an expert at analyzing lecture transcripts, matching content with slides, and analyzing student engagement. Analyze the content for topics and assess each topic's engagement level based on student interactions, questions, and participation indicators in the transcript."
-};
-
-const createUserMessage = (transcript: string, slides?: string[]) => ({
-  role: "user" as const,
-  content: `Analyze this lecture transcript and break it into logical chunks. For each chunk, provide:
-    1. A concise topic title
-    2. A one-sentence summary
-    3. 3-5 detailed bullet points with their corresponding detailed and untruncated transcript parts without ellipsis.
-    4. A sentiment analysis indicating student engagement level ("confused", "neutral", or "engaged")
-    5. A numerical sentiment score (0-100) where higher numbers indicate more engagement
-
-    ${slides ? `I'm also providing the content of ${slides.length} slides. For each bullet point, if you find a matching slide that best represents that point, include its index (0-based).` : ''}
-
-    Return a JSON object with a "chunks" array. Example format:
+const messages = [
+  {
+    role: "system",
+    content: "You are an expert at analyzing lecture transcripts and creating comprehensive study materials for students. Your task is to identify main topics and create detailed, student-friendly bullet point summaries that help students understand and revise the lecture content. Focus on clarity, completeness, and educational value. Always maintain chronological order of concepts unless explicitly noted otherwise in the transcript."
+  },
+  {
+    role: "user",
+    content: (transcript: string) => `Analyze this lecture transcript and identify ALL main topics discussed (Exhaustive, and in the order they are discussed). For each topic:
+    1. Create a clear, concise title that captures the main theme
+    2. List 2-4 specific learning objectives that students should achieve after studying this topic
+    3. Provide 5-8 comprehensive bullet points that:
+       - Explain key concepts in detail
+       - Include important definitions and terminology
+       - Highlight relationships between concepts
+       - Provide relevant examples or applications
+       - Note any important formulas, equations, or technical details
+       - Include any practical implications or real-world applications
+    4. For each bullet point:
+       - Make it self-contained and understandable without additional context
+       - Use clear, academic language while remaining accessible
+       - Include specific details that help with understanding and memorization
+       - Reference the relevant slide numbers where this concept was discussed
+       - List key terms introduced in this point
+       - Provide specific examples or applications
+       - Include 1-2 practice questions to check understanding
+    
+    Return the result as JSON with the following structure:
     {
-      "chunks": [
+      "topics": [
         {
-          "id": 1,
+          "id": "topic-id",
           "title": "Topic Title",
-          "summary": "Brief overview",
-          "sentiment": "engaged",
-          "sentimentScore": 85,
-          "bulletPoints": [
+          "learningObjectives": [
+            "Students will be able to...",
+            "Students will understand..."
+          ],
+          "summary": [
             {
-              "point": "Key point",
-              "transcript": "Relevant transcript section...",
-              ${slides ? '"slideIndex": 0,' : ''} 
+              "point": "Comprehensive bullet point with all relevant details",
+              "slideReference": "Slides X-Y (or specific slide number if single slide)",
+              "keyTerms": ["term1", "term2"],
+              "examples": ["example1", "example2"],
+              "practiceQuestions": ["question1", "question2"]
             }
           ]
         }
       ]
     }
-
-    ${slides ? '\nSlide contents:\n' + slides.map((content, i) => `Slide ${i}: ${content}`).join('\n') : ''}
+    
+    Guidelines for topic identification and summarization:
+    - Break down complex topics into clear, digestible sections
+    - Include both theoretical concepts and practical applications
+    - Maintain logical flow between topics and bullet points
+    - Ensure each bullet point provides complete information for understanding
+    - Include any important caveats, exceptions, or special cases
+    - For technical content, explain both the what and the why
+    - Keep slide references accurate and in chronological order unless explicitly noted otherwise
+    - If a concept is discussed across multiple slides, provide the full range
+    - If a concept is discussed out of order, make this clear in the slide reference
+    - Make learning objectives specific and measurable
+    - Include a mix of theoretical and practical examples
+    - Design practice questions that test both understanding and application
 
     Transcript:\n${transcript}`
-});
+  }
+];
 
 export default async function handler(
   req: NextApiRequest,
@@ -71,32 +97,23 @@ export default async function handler(
   }
 
   try {
-    const { transcript, slides } = req.body;
+    const { transcript } = req.body;
 
     if (!transcript || typeof transcript !== 'string') {
       return res.status(400).json({ message: 'Invalid transcript provided' });
     }
 
-    console.log('Request details:', {
-      transcriptLength: transcript.length,
-      slidesCount: slides?.length,
-      timestamp: new Date().toISOString()
-    });
+    console.log('Sending request to OpenAI');
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4",
       messages: [
-        systemMessage,
-        createUserMessage(transcript, slides)
+        messages[0],
+        { role: "user", content: messages[1].content(transcript) }
       ],
-      response_format: { type: "json_object" }
-    }).catch(error => {
-      console.error('OpenAI API Error:', {
-        error: error.message,
-        type: error.type,
-        code: error.code
-      });
-      throw new Error(`OpenAI API error: ${error.message}`);
+      response_format: { type: "json_object" },
+      temperature: 0.7, // Slightly increased for more natural explanations
+      max_tokens: 2000 // Increased to allow for more detailed explanations
     });
 
     const content = completion.choices[0]?.message?.content;
@@ -109,29 +126,20 @@ export default async function handler(
     let parsedResponse: ChunkResponse;
     try {
       parsedResponse = JSON.parse(content);
-      console.log('Parsed response structure:', {
-        hasChunks: !!parsedResponse.chunks,
-        chunksLength: parsedResponse.chunks?.length,
-        firstChunk: parsedResponse.chunks?.[0] ? 'present' : 'missing'
-      });
-    } catch (error: unknown) {
-      const parseError = error instanceof Error ? error : new Error('Unknown JSON parse error');
-      console.error('JSON parse error details:', parseError);
-      throw parseError;
+      console.log('Parsed response:', parsedResponse);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      throw new Error('Invalid JSON response from OpenAI');
     }
 
-    if (!parsedResponse.chunks || !Array.isArray(parsedResponse.chunks)) {
+    if (!parsedResponse.topics || !Array.isArray(parsedResponse.topics)) {
       throw new Error('Invalid response format from OpenAI');
     }
 
     return res.status(200).json(parsedResponse);
 
   } catch (error) {
-    console.error('API handler error:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      timestamp: new Date().toISOString()
-    });
+    console.error('OpenAI API error:', error);
     return res.status(500).json({ 
       message: error instanceof Error ? error.message : 'Error processing request'
     });
