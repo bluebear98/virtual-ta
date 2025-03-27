@@ -12,6 +12,7 @@ interface ChunkResponse {
     title: string;
     summary: Array<{
       point: string;
+      slideReference: string;
     }>;
   }>;
 }
@@ -19,19 +20,26 @@ interface ChunkResponse {
 const messages = [
   {
     role: "system",
-    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create detailed bullet point summaries for each topic to help students review the lecture content. Be thorough in identifying distinct topics and provide comprehensive bullet points for each topic. Always respond with valid JSON."
+    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create concise but informative bullet point summaries for each topic to help students review the lecture content. Be thorough in identifying distinct topics and provide clear, focused bullet points for each topic. Always respond with valid JSON."
   },
   {
     role: "user",
     content: `Analyze this lecture transcript and identify ALL main topics discussed (Exhaustive, and in the order they are discussed). For each topic:
     1. Create a clear, concise title
-    2. Provide 5-8 detailed bullet points that:
-       - Explain key concepts thoroughly
-       - Include important definitions and terminology
-       - Highlight relationships between concepts
-       - Provide relevant examples or applications
-       - Note any important formulas, equations, or technical details
-       - Include any practical implications or real-world applications
+    2. Provide 5-8 focused bullet points that:
+       - Explain key concepts in 1-3 clear sentences
+       - Include essential definitions and terminology
+       - Highlight important relationships between concepts
+       - Provide key examples or applications
+       - Note critical formulas or technical details
+       - Reference the specific slide numbers where each concept is discussed
+    3. For each bullet point:
+       - Be concise but comprehensive
+       - Use clear, academic language
+       - Focus on the most important information
+       - Reference the relevant slide numbers
+       - If a concept spans multiple slides, provide the range (e.g., "Slides 5-7")
+       - If a concept is discussed out of order, note this (e.g., "Discussed in Slides 8-10 (out of order)")
     
     Return the result as JSON with the following structure:
     {
@@ -41,7 +49,8 @@ const messages = [
           "title": "Topic Title",
           "summary": [
             {
-              "point": "Comprehensive bullet point with all relevant details"
+              "point": "Concise bullet point with key information",
+              "slideReference": "Slides X-Y (or specific slide number if single slide)"
             }
           ]
         }
@@ -52,8 +61,11 @@ const messages = [
     - Include both major themes and important technical details
     - Consider chronological progression of concepts
     - Capture any important examples or case studies as separate topics if they illustrate key concepts
-    - Make each bullet point self-contained and understandable
-    - Use clear, academic language while remaining accessible
+    - Keep bullet points focused and concise (1-3 sentences)
+    - Use clear, academic language
+    - Ensure slide references are accurate and helpful for students
+    - If a concept is discussed across multiple slides, provide the full range
+    - If a concept is discussed out of order, make this clear in the slide reference
 
     Transcript:\n`
   }
