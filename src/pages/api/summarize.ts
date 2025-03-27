@@ -105,19 +105,28 @@ export default async function handler(
     console.log('Sending request to OpenAI');
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4",
       messages: [
         messages[0],
         { role: "user", content: messages[1].content + transcript }
       ],
       temperature: 0.7,
       max_tokens: 2000
+    }).catch((error: Error) => {
+      console.error('OpenAI API Error:', {
+        error: error.message,
+        type: error.name,
+        stack: error.stack
+      });
+      throw new Error(`OpenAI API error: ${error.message}`);
     });
 
     const content = completion.choices[0]?.message?.content;
     if (!content) {
       throw new Error('No content in OpenAI response');
     }
+
+    console.log('Raw OpenAI response:', content);
 
     // Try to extract JSON if there's any text before or after it
     const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -126,6 +135,7 @@ export default async function handler(
     let parsedResponse: ChunkResponse;
     try {
       parsedResponse = JSON.parse(jsonContent);
+      console.log('Parsed response:', parsedResponse);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
       console.error('Raw content:', content);
@@ -139,7 +149,11 @@ export default async function handler(
     return res.status(200).json(parsedResponse);
 
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    console.error('API handler error:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString()
+    });
     return res.status(500).json({ 
       message: error instanceof Error ? error.message : 'Error processing request'
     });
