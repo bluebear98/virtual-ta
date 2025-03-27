@@ -20,27 +20,20 @@ interface ChunkResponse {
 const messages = [
   {
     role: "system",
-    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create comprehensive bullet point summaries that combine theoretical understanding with practical implications. Each bullet point should provide both the concept and its significance. Always respond with valid JSON."
+    content: "You are an expert at analyzing lecture transcripts. Your task is to identify main topics and create bullet point summaries that explain concepts in an active, student-friendly voice. Write as if you're explaining the material to a fellow student. Always respond with valid JSON."
   },
   {
     role: "user",
     content: `Analyze this lecture transcript and identify ALL main topics discussed (Exhaustive, and in the order they are discussed). For each topic:
     1. Create a clear, concise title
-    2. Provide 5-8 comprehensive bullet points that:
-       - Start with the core concept or definition
-       - Explain how it works or its mechanism
-       - Describe its significance and implications
-       - Connect it to related concepts or real-world applications
-       - Include specific examples or case studies when relevant
-       - Note any important formulas or technical details with explanations
-       - Reference the specific slide numbers where each concept is discussed
-    3. For each bullet point:
-       - Structure it as: "What it is → How it works → Why it matters"
-       - Use clear, academic language while remaining accessible
-       - Include both theoretical understanding and practical implications
-       - Reference the relevant slide numbers
-       - If a concept spans multiple slides, provide the range (e.g., "Slides 5-7")
-       - If a concept is discussed out of order, note this (e.g., "Discussed in Slides 8-10 (out of order)")
+    2. For each bullet point:
+       - Start with active verbs (e.g., "We learned that...", "The professor explained...", "We saw how...")
+       - Explain concepts in a conversational, student-friendly way
+       - Connect ideas to real-world examples and applications
+       - Include important formulas or technical details with clear explanations
+       - Match each point to the EXACT slide where it was discussed
+       - If a point covers content from multiple slides, list all relevant slides
+       - If a point's content appears out of order in the slides, indicate this
     
     Return the result as JSON with the following structure:
     {
@@ -50,23 +43,22 @@ const messages = [
           "title": "Topic Title",
           "summary": [
             {
-              "point": "Comprehensive bullet point with concept, mechanism, and implications",
-              "slideReference": "Slides X-Y (or specific slide number if single slide)"
+              "point": "Active, student-friendly explanation of the concept",
+              "slideReference": "Slide X (or Slides X, Y, Z if multiple slides)"
             }
           ]
         }
       ]
     }
     
-    Guidelines for topic identification:
-    - Include both major themes and important technical details
-    - Consider chronological progression of concepts
-    - Capture any important examples or case studies as separate topics if they illustrate key concepts
-    - Structure each bullet point to cover: concept, mechanism, and implications
-    - Use clear, academic language while remaining accessible
-    - Ensure slide references are accurate and helpful for students
-    - If a concept is discussed across multiple slides, provide the full range
-    - If a concept is discussed out of order, make this clear in the slide reference
+    Guidelines for topic and slide matching:
+    - Each bullet point should correspond to specific content from the slides
+    - If a concept is introduced on one slide and elaborated on another, include both slides
+    - If examples or applications are shown on different slides, include those slides
+    - If a concept is discussed out of order, list all relevant slides with order indication
+    - Make sure each point's content directly matches what was shown on the referenced slides
+    - If a point combines information from multiple slides, list all relevant slides
+    - Consider chronological progression of concepts across slides
 
     Transcript:\n`
   }
@@ -90,7 +82,7 @@ export default async function handler(
     console.log('Sending request to OpenAI');
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o",
       messages: [
         messages[0],
         { role: "user", content: messages[1].content + transcript }
