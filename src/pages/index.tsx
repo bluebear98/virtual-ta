@@ -96,6 +96,11 @@ export default function Home() {
 
   return (
     <Layout title="Lecture Analyzer">
+      <Head>
+        <title>Virtual TA - Lecture Analyzer</title>
+        <meta name="description" content="Analyze lecture transcripts" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
       <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 4 }}>
         Upload your lecture transcript and slides to get a detailed analysis
       </Typography>
