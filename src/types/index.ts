@@ -3,5 +3,6 @@ export interface TopicChunk {
   title: string;
   summary: Array<{
     point: string;
+    slideReference: string;
   }>;
 }
