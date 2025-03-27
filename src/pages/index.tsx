@@ -83,7 +83,7 @@ export default function Home() {
       }
       
       console.log('API Response:', data);
-      setTopics(data.chunks || [])
+      setTopics(data.topics || [])
       setError('');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error processing transcript';
@@ -144,32 +144,14 @@ export default function Home() {
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <div>
                 <Typography variant="h6">{topic.title}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {topic.summary}
-                </Typography>
               </div>
             </AccordionSummary>
             <AccordionDetails>
               <List>
-                {topic.bulletPoints.map((bulletPoint, index) => (
+                {topic.summary.map((item, index) => (
                   <ListItem key={index} sx={{ flexDirection: 'column', alignItems: 'flex-start' }}>
                     <ListItemText
-                      primary={bulletPoint.point}
-                      secondary={
-                        <Paper variant="outlined" sx={{ p: 2, mt: 1, bgcolor: 'grey.50' }}>
-                          {slides.length > 0 && bulletPoint.slideIndex !== undefined && (
-                            <Chip
-                              label={`Slide ${bulletPoint.slideIndex + 1}`}
-                              size="small"
-                              color="success"
-                              sx={{ mb: 1 }}
-                            />
-                          )}
-                          <Typography variant="body2" color="text.secondary">
-                            {bulletPoint.transcript}
-                          </Typography>
-                        </Paper>
-                      }
+                      primary={item.point}
                     />
                   </ListItem>
                 ))}
